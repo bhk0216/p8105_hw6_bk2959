@@ -1,0 +1,17 @@
+---
+title: "p8105_hw6_bk2959"
+author: "Stella Koo"
+date: "2024-11-16"
+output: github_document
+---
+
+## Problem 2
+
+```{r message = FALSE}
+library(tidyverse)
+
+homicide_df = read_csv("homicide.csv") |>
+  janitor::clean_names() |>
+  
+```
+
