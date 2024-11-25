@@ -6,12 +6,70 @@ output: github_document
 ---
 
 ## Problem 2
-
-```{r message = FALSE}
+### Data Cleaning
+```{r message = FALSE, warning = FALSE}
 library(tidyverse)
 
 homicide_df = read_csv("homicide.csv") |>
   janitor::clean_names() |>
+  mutate(city_state = str_c(city, state, sep = ", "),
+         solved = ifelse(disposition %in% c("Closed without arrest", "Closed by arrest"), 1, 0), 
+         victim_age = as.numeric(victim_age)) |>
+  filter(!city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"),
+         victim_race %in% c("White", "Black"))
+```
+
+### Baltimore, MD
+The following presents the results of a logistic regression analysis conducted in Baltimore, MD, with resolved vs unresolved as the outcome variable. The predictors in the model include victim age, sex, and race. The table summarizes the estimated effects of each predictor on the outcome.
+```{r}
+baltimore_fit = homicide_df |>
+  filter(city_state == "Baltimore, MD") |>
+  glm(solved ~ victim_age + victim_sex + victim_race, family = "binomial", data = _)
+
+broom::tidy(baltimore_fit)
+```
+
+The estimate and confidence interval for the adjusted odds ratio (OR) comparing male victims to female victims for solving homicides, while holding all other variables constant, were obtained using the following approach:
+```{r}
+odds_ratio_est = exp(coef(baltimore_fit)["victim_sexMale"])
+odds_ratio_est
+
+odds_ratio_ci = exp(confint(baltimore_fit, "victim_sexMale"))
+odds_ratio_ci
+```
+
+### All cities
+The adjusted odds ratio and confidence interval for solving homicides, comparing male victims to female victims, were calculated for each city in the dataset.
+```{r}
+model_or_ci = function(city_data){
   
+  fit = glm(solved ~ victim_age + victim_sex + victim_race, family = "binomial", data = city_data) |>
+    broom::tidy(conf.int = TRUE, exponentiate = TRUE) |>
+    filter(term == "victim_sexMale") |>
+    select(odds_ratio = estimate, conf.low, conf.high)
+  
+}
+
+cities_fit = homicide_df |>
+  group_by(city_state) |>
+  nest() |>
+  mutate(results = map(data, model_or_ci)) |>
+  unnest(results) |>
+  select(-data)
+
+cities_fit 
+```
+
+```{r}
+ggplot(cities_fit, aes(x = reorder(city_state, odds_ratio), 
+                       y = odds_ratio, 
+                       ymin = conf.low, 
+                       ymax = conf.high)) +
+  geom_pointrange() +
+  coord_flip() +
+  labs(x = "City, State",
+    y = "Estimated Odds Ratio (OR)",
+    title = "Estimated Odds Ratios for Solving Homicides by Sex") +  
+  theme(axis.text.y = element_text(size = 8))
 ```
 
