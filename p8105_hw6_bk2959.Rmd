@@ -21,7 +21,6 @@ weather_df =
   select(name, id, everything())
 ```
 
-
 ## Problem 2
 ### Data Cleaning
 ```{r message = FALSE, warning = FALSE}
