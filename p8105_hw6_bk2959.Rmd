@@ -96,6 +96,7 @@ ggplot(cities_fit, aes(x = reorder(city_state, odds_ratio),
     title = "Estimated Odds Ratios for Solving Homicides if Victom is Male") +  
   theme(axis.text.y = element_text(size = 8))
 ```
+
 The top three cities with the highest odds ratios (OR) for solving homicides—Minneapolis, MN, Stockton, CA, and Fresno, CA—all exhibit OR values greater than 1. Minneapolis, MN has the highest odds ratio, indicating that homicides involving male victims are more likely to be solved compared to those involving female victims in these cities. However, the confidence intervals for these cities are wide, with the lower bounds extending below 1. This indicates significant statistical uncertainty. As a result, while the trend suggests an advantage for male victims in solving homicides, these findings should be interpreted with caution due to a lack of precision.
 
 In contrast, cities such as New York, NY, Baton Rouge, LA, and Omaha, NE exhibit odds ratios closer to 0, with New York, NY having the lowest value. This indicates that the odds of solving homicides are significantly lower for male victims compared to female victims in these cities. Unlike the first group, the confidence intervals here are narrower and remain below 1, suggesting that these results are statistically robust and consistent. 
@@ -123,14 +124,15 @@ sum(is.na(birthweight_df))
 ```
 The dataset was checked for any missing values and none were found. 
 
-### Regression Model for `birthweight`
-1. I began by fitting the model using all available variables to assess the factors influencing birth weight. 
+### Regression Model for birthweight (`bwt`)
+1. I began by fitting the model using all available variables to assess the factors influencing birth weight. The following table shows the summary of the first five predictors.
 
 ```{r}
 full_model = lm(bwt ~ ., data = birthweight_df)
 
 full_model_summary = full_model |>
   broom::tidy() |>
+  head(5) |>
   knitr::kable(digits = 3)
 
 full_model_summary
